@@ -1,5 +1,16 @@
 /* =========================================================
-   0) Effet machine à écrire (rôle dans le hero)
+   0) Filet de sécurité pour les logos externes (simpleicons)
+   ========================================================= */
+(function initIconFallback() {
+  document.addEventListener('error', (e) => {
+    const img = e.target;
+    if (img.tagName !== 'IMG' || !img.src.includes('simpleicons.org')) return;
+    img.style.display = 'none';
+  }, true);
+})();
+
+/* =========================================================
+   1) Effet machine à écrire (rôle dans le hero)
    ========================================================= */
 (function initTypewriter() {
   const el = document.getElementById('typewriter-text');
@@ -149,7 +160,10 @@
     .from('.hero-blue-label', { opacity: 0, y: 12, duration: 0.5 })
     .from('.hero-blue-name', { opacity: 0, y: 24, duration: 0.7 }, '-=0.25')
     .from('.hero-blue-role', { opacity: 0, duration: 0.5 }, '-=0.2')
-    .from('.hero-blue-btn', { opacity: 0, y: 14, duration: 0.5 }, '-=0.2');
+    .from('.hero-blue-quote', { opacity: 0, y: 10, duration: 0.5 }, '-=0.1')
+    .from('.hero-blue-btn', { opacity: 0, y: 14, duration: 0.5 }, '-=0.2')
+    .from('.hero-photo-ring-wrap', { opacity: 0, scale: 0.85, duration: 0.7 }, '-=0.6')
+    .from('.role-badge', { opacity: 0, scale: 0.6, duration: 0.4, stagger: 0.1 }, '-=0.3');
 
   // Gentle floating loop on the orbit icons
   gsap.utils.toArray('.orbit-icon').forEach((icon, i) => {
@@ -178,7 +192,7 @@
     });
   });
 
-  document.querySelectorAll('.tech-pills').forEach((grid) => {
+  document.querySelectorAll('.tool-tiles').forEach((grid) => {
     const items = grid.children;
     gsap.set(items, { opacity: 0, y: 14 });
     gsap.to(items, {
@@ -340,4 +354,84 @@ if (contactForm) {
     balloon.style.animationDelay = (Math.random() * -25) + 's';
     container.appendChild(balloon);
   }
+
+  // Floating library names drifting across the background
+  const LIB_NAMES = ['NumPy', 'Seaborn', 'Matplotlib', 'Scikit-learn', 'Plotly', 'SciPy', 'Pandas'];
+  LIB_NAMES.forEach((name, i) => {
+    const el = document.createElement('div');
+    el.className = 'bg-lib-label';
+    el.textContent = name;
+    el.style.left = (Math.random() * 85 + 5) + '%';
+    el.style.animationDuration = (22 + Math.random() * 18) + 's';
+    el.style.animationDelay = (i * -4 + Math.random() * -6) + 's';
+    container.appendChild(el);
+  });
+
+  // Floating tool/language logos drifting across the background
+  const LOGOS = [
+    ['python', '3776AB'], ['git', 'F05032'], ['github', '9BA0AE'],
+    ['docker', '2496ED'], ['scikitlearn', 'F7931E'], ['javascript', 'F7DF1E'],
+    ['html5', 'E34F26'], ['css3', '1572B6']
+  ];
+  LOGOS.forEach((logo, i) => {
+    const el = document.createElement('img');
+    el.className = 'bg-lib-icon';
+    el.src = `https://cdn.simpleicons.org/${logo[0]}/${logo[1]}`;
+    el.alt = '';
+    el.style.left = (Math.random() * 88 + 3) + '%';
+    el.style.animationDuration = (20 + Math.random() * 16) + 's';
+    el.style.animationDelay = (i * -3.5 + Math.random() * -6) + 's';
+    container.appendChild(el);
+  });
+})();
+
+/* =========================================================
+   10) Orbite elliptique des langages autour de la photo
+   ========================================================= */
+(function initPhotoOrbit() {
+  const stage = document.getElementById('photo-orbit-stage');
+  if (!stage) return;
+
+  const langs = [
+    ['html5', 'E34F26'], ['css3', '1572B6'], ['openjdk', '437291'],
+    ['javascript', 'F7DF1E'], ['python', '3776AB'], ['c', 'A8B9CC']
+  ];
+
+  const icons = langs.map((lang, i) => {
+    const el = document.createElement('div');
+    el.className = 'orbit-lang-icon';
+    el.innerHTML = `<img src="https://cdn.simpleicons.org/${lang[0]}/${lang[1]}" alt="">`;
+    stage.appendChild(el);
+    return { el, angle: (i / langs.length) * Math.PI * 2 };
+  });
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let t = 0;
+
+  function positionIcons() {
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+    const radiusX = w / 2 + 14;
+    const radiusY = h / 2 + 14;
+    const cx = w / 2;
+    const cy = h / 2;
+
+    icons.forEach((item) => {
+      const angle = item.angle + t;
+      const x = cx + radiusX * Math.cos(angle);
+      const y = cy + radiusY * Math.sin(angle) * 0.6;
+      item.el.style.left = x + 'px';
+      item.el.style.top = y + 'px';
+    });
+  }
+
+  function loop() {
+    t += 0.0045;
+    positionIcons();
+    if (!reduceMotion) requestAnimationFrame(loop);
+  }
+
+  positionIcons();
+  if (!reduceMotion) requestAnimationFrame(loop);
+  window.addEventListener('resize', positionIcons);
 })();
