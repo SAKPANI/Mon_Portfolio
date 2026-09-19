@@ -1,4 +1,23 @@
 /* =========================================================
+   0) Effet machine à écrire (rôle dans le hero)
+   ========================================================= */
+(function initTypewriter() {
+  const el = document.getElementById('typewriter-text');
+  if (!el) return;
+  const text = 'IA / ML / Data Scientist en devenir';
+  let i = 0;
+  function type() {
+    if (i <= text.length) {
+      el.textContent = text.slice(0, i);
+      i++;
+      setTimeout(type, 55);
+    }
+  }
+  type();
+})();
+
+
+/* =========================================================
    1) THREE.JS — réseau de particules animé (fond du hero)
    ========================================================= */
 (function initHeroCanvas() {
@@ -17,8 +36,9 @@
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  const accentColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--accent').trim() || '#B4791F';
+  const accentColor = hero.classList.contains('hero-blue')
+    ? '#FFFFFF'
+    : (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#B4791F');
 
   const PARTICLE_COUNT = 70;
   const positions = new Float32Array(PARTICLE_COUNT * 3);
@@ -126,16 +146,10 @@
 
   const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
   heroTl
-    .from('.hero-badge', { opacity: 0, y: 12, duration: 0.5 })
-    .from('.hero-title', { opacity: 0, y: 24, duration: 0.7 }, '-=0.25')
-    .from('.hero-bio', { opacity: 0, y: 16, duration: 0.6 }, '-=0.35')
-    .from('.hero-actions-row .btn', { opacity: 0, y: 14, duration: 0.5, stagger: 0.1 }, '-=0.3')
-    .from('.profile-card', { opacity: 0, y: 20, duration: 0.7 }, '-=0.5');
-
-  // Photo + orbit icons animate in when the profile card reveals
-  gsap.from('.profile-card-photo', {
-    opacity: 0, scale: 0.9, duration: 0.7, ease: 'power2.out'
-  });
+    .from('.hero-blue-label', { opacity: 0, y: 12, duration: 0.5 })
+    .from('.hero-blue-name', { opacity: 0, y: 24, duration: 0.7 }, '-=0.25')
+    .from('.hero-blue-role', { opacity: 0, duration: 0.5 }, '-=0.2')
+    .from('.hero-blue-btn', { opacity: 0, y: 14, duration: 0.5 }, '-=0.2');
 
   // Gentle floating loop on the orbit icons
   gsap.utils.toArray('.orbit-icon').forEach((icon, i) => {
@@ -164,7 +178,7 @@
     });
   });
 
-  document.querySelectorAll('.skills-grid, .tools-grid').forEach((grid) => {
+  document.querySelectorAll('.tech-pills').forEach((grid) => {
     const items = grid.children;
     gsap.set(items, { opacity: 0, y: 14 });
     gsap.to(items, {
@@ -223,19 +237,38 @@ if ('IntersectionObserver' in window) {
 /* =========================================================
    5) Copier l'email
    ========================================================= */
-const copyEmailBtn = document.getElementById('copy-email-btn');
-if (copyEmailBtn) {
-  copyEmailBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText('ton.email@exemple.com').then(() => {
-      const original = copyEmailBtn.textContent;
-      copyEmailBtn.textContent = 'Email copié !';
-      setTimeout(() => { copyEmailBtn.textContent = original; }, 2000);
+function setupCopyEmail(button, email, targetSelector) {
+  if (!button) return;
+  button.addEventListener('click', () => {
+    navigator.clipboard.writeText(email).then(() => {
+      const label = targetSelector ? button.querySelector(targetSelector) : button;
+      const original = label.textContent;
+      label.textContent = 'Copié !';
+      setTimeout(() => { label.textContent = original; }, 1800);
     });
+  });
+}
+setupCopyEmail(document.getElementById('copy-email-btn'), 'ton.email@exemple.com');
+const copyCard = document.getElementById('copy-email-card');
+if (copyCard) {
+  setupCopyEmail(copyCard, copyCard.dataset.email, 'strong');
+}
+
+/* =========================================================
+   6) Bouton retour en haut
+   ========================================================= */
+const backToTop = document.getElementById('back-to-top');
+if (backToTop) {
+  window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', window.scrollY > 500);
+  });
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 }
 
 /* =========================================================
-   6) Formulaire de contact : petit retour visuel
+   7) Formulaire de contact : petit retour visuel
    ========================================================= */
 const contactForm = document.querySelector('.contact-form');
 if (contactForm) {
@@ -247,3 +280,64 @@ if (contactForm) {
     }
   });
 }
+
+/* =========================================================
+   8) Bascule du thème clair / sombre
+   ========================================================= */
+(function initThemeToggle() {
+  const toggle = document.getElementById('theme-toggle');
+  if (!toggle) return;
+  const root = document.documentElement;
+  const saved = localStorage.getItem('portfolio-theme');
+  if (saved === 'dark') root.setAttribute('data-theme', 'dark');
+
+  toggle.addEventListener('click', () => {
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      root.removeAttribute('data-theme');
+      localStorage.setItem('portfolio-theme', 'light');
+    } else {
+      root.setAttribute('data-theme', 'dark');
+      localStorage.setItem('portfolio-theme', 'dark');
+    }
+  });
+})();
+
+/* =========================================================
+   9) Étoiles scintillantes + ballons flottants en fond
+   ========================================================= */
+(function initBgDecor() {
+  const container = document.getElementById('bg-decor');
+  if (!container) return;
+
+  const STAR_COUNT = 55;
+  for (let i = 0; i < STAR_COUNT; i++) {
+    const star = document.createElement('div');
+    star.className = 'bg-star';
+    const size = 2 + Math.random() * 3;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.animationDelay = (Math.random() * 3.5) + 's';
+    star.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+    container.appendChild(star);
+  }
+
+  const balloonColors = ['#D9531E', '#E8794A', '#F0A868', '#2D9DA8', '#6C8CD5', '#B47CC7', '#5FB876', '#E0C158'];
+  const BALLOON_COUNT = 10;
+  for (let i = 0; i < BALLOON_COUNT; i++) {
+    const balloon = document.createElement('div');
+    balloon.className = 'bg-balloon';
+    const size = 26 + Math.random() * 24;
+    balloon.style.width = size + 'px';
+    balloon.style.height = (size * 1.3) + 'px';
+    balloon.style.left = (Math.random() * 90 + 2) + '%';
+    balloon.style.color = balloonColors[i % balloonColors.length];
+    balloon.style.background = balloonColors[i % balloonColors.length];
+    balloon.style.opacity = (0.12 + Math.random() * 0.14).toFixed(2);
+    balloon.style.animationDuration = (14 + Math.random() * 16) + 's';
+    balloon.style.animationDelay = (Math.random() * -25) + 's';
+    container.appendChild(balloon);
+  }
+})();
